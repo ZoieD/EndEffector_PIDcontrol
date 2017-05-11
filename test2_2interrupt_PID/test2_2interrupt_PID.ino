@@ -10,8 +10,7 @@
   motor in order to achieve fast reactive and stable control
 
   This code has four main functions :
-  1. Reading Hall sensor value to monitor & control direction change, measure rpm and control speed using rpm feedback values 
-  2. Two limited switch CW and CCW state operate reset and emergency to back to a fixed place
+  1. Two limited switch CW and CCW state operate reset and emergency to back to a fixed place
   2. Auto-control algorithm with the concept of PID Tuning 
 
   More can be found on:
@@ -37,10 +36,9 @@ int PWM = 8;//speed control (IN1 in motor driver)
 volatile unsigned long hall_state[] = {0, 0, 0}; // 
 volatile unsigned long pulse_length[] = {0, 0, 0}; //
 volatile unsigned long rising_start[] = {0, 0, 0};
-//volatile unsigned long LS_state[] = {digitalRead(LS_pin[0]), digitalRead(LS_pin[1])}; 
 volatile unsigned long LS_state[] = {0, 0}; 
 
-int reset_speed = 15;
+int reset_speed = 10;
 int last_PWM = 0;
 double sensor_value = 0;
 double first_sensor_value = 0;
@@ -62,8 +60,6 @@ double output_final; // store speed_default_value + Output PWM value
 //int diff = 50; // threshold bewteen Input and Setpoint
 int input_error = 0;// error bewteen Input and Setpoint
 int error_tolerance = 3;
-long last_toggle_time = 0;
-const int toggle_period = 100; // [milliseconds]
 unsigned long time0;
 unsigned long time1;
 double interval = 6000;
@@ -92,17 +88,17 @@ void setup()
   modeSet();
   reset();
 
-/* initialize timer3 */
-    Timer3.initialize(10000);
-    Timer3.attachInterrupt(firstReading);
-/*  initialize timer1 */
-    Timer1.initialize(100000);         // initialize timer1, and set a 0.1 second period
-    Timer1.attachInterrupt(pidCompute);  // attaches callback() as a timer overflow interrupt
+  /* initialize timer3 */
+  Timer3.initialize(10000);
+  Timer3.attachInterrupt(firstReading);
+  /*  initialize timer1 */
+  Timer1.initialize(100000);         // initialize timer1, and set a 0.1 second period
+  Timer1.attachInterrupt(pidCompute);  // attaches callback() as a timer overflow interrupt
 
-/*Setup needed for PID used for pressure adjust*/
-   myPID.SetMode(AUTOMATIC); // set the mode of output PID to be automatic
-   myPID.SetSampleTime(5);  // set sample time of PID to be 0.05s
-   myPID.SetOutputLimits(0, tuning_speed); // set max,min limit of output PID
+  /*Setup needed for PID used for pressure adjust*/
+  myPID.SetMode(AUTOMATIC); // set the mode of output PID to be automatic
+  myPID.SetSampleTime(5);  // set sample time of PID to be 0.05s
+  myPID.SetOutputLimits(0, tuning_speed); // set max,min limit of output PID
 }
 
 
@@ -132,8 +128,7 @@ double firstReading()
     return Setpoint = first_sensor_value + decre_distance;
   }
   
-//  last_sensor_value = sensor_value;
-  
+//  last_sensor_value = sensor_value;  
 }
 
 /* PID algorithm apply to do a feedback control for speed to reach target force */
@@ -154,8 +149,6 @@ void pidCompute()
   }
   else
   { 
-     time0 = millis();
-     Serial.println(time0);
      firstReading();
      Serial.println(Setpoint);
      Input = map(analogRead(A0), 0, 1023, 0, 255);
@@ -228,7 +221,7 @@ void modeSet()
    Serial.println(LS_state[0]);
    Serial.println(LS_state[1]);
    digitalWrite(dir_pin[0], HIGH);
-   analogWrite(PWM, 10);
+   analogWrite(PWM, reset_speed);
 }
 
 /* go to a consistent posisition everytime start the program */
@@ -242,7 +235,7 @@ void reset()
      Serial.println(LS_state[0]);
      Serial.println(LS_state[1]);
      digitalWrite(dir_pin[0], LOW);
-     analogWrite(PWM, 10);
+     analogWrite(PWM, reset_speed);
      delay(1000);
      analogWrite(PWM, 0);
      delay(5000);    
