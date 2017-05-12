@@ -85,7 +85,6 @@ void setup()
   digitalWrite(LS_pin[0], LOW);
   digitalWrite(LS_pin[1], LOW);// "LOW" is to activate limit switch, as "HIGH" is default statue
   
-  modeSet();
   reset();
 
   /* initialize timer3 */
@@ -211,56 +210,44 @@ void pidCompute()
 //  
 //}
 
-/* set mode0, to make sure motor go back to start position */
-void modeSet()
-{
-   LS_state[0] = digitalRead(LS_pin[0]);
-   LS_state[1] = digitalRead(LS_pin[1]);
-
-   Serial.println("go up");
-   Serial.println(LS_state[0]);
-   Serial.println(LS_state[1]);
-   digitalWrite(dir_pin[0], HIGH);
-   analogWrite(PWM, reset_speed);
-}
 
 /* go to a consistent posisition everytime start the program */
 void reset()
 {
-    LS_state[0] = digitalRead(LS_pin[0]);
-    LS_state[1] = digitalRead(LS_pin[1]);
-
- 
+ LS_state[0] = digitalRead(LS_pin[0]);
+   LS_state[1] = digitalRead(LS_pin[1]);
+   if(LS_state[1] ==1)
+   {
      Serial.println("go down");
      Serial.println(LS_state[0]);
      Serial.println(LS_state[1]);
      digitalWrite(dir_pin[0], LOW);
-     analogWrite(PWM, reset_speed);
+     analogWrite(PWM, 10);
      delay(1000);
      analogWrite(PWM, 0);
      delay(5000);    
+   }
+   else
+   {
+     Serial.println("go up");
+     Serial.println(LS_state[0]);
+     Serial.println(LS_state[1]);
+     digitalWrite(dir_pin[0], HIGH);
+     analogWrite(PWM, 10);
+     delay(3000);
+     
+     Serial.println("go down");
+     Serial.println(LS_state[0]);
+     Serial.println(LS_state[1]);
+     digitalWrite(dir_pin[0], LOW);
+     analogWrite(PWM, 10);
+     delay(1000);
+     analogWrite(PWM, 0);
+     delay(5000);     
+   }
 }
 
 
-/* stop function */
-//void stopExecute()
-//{
-//  LS_state[0] = digitalRead(LS_pin[0]);
-//  LS_state[1] = digitalRead(LS_pin[1]);
-//  if (LS_state[0] == 1)
-//  {
-//    analogWrite(PWM, 0);
-//  }
-//  else if (stop_check)
-//  {
-//    analogWrite(PWM, 0);
-//    reset();
-//  }
-//  else
-//  {
-//    
-//  }
-//}
 
 
 
